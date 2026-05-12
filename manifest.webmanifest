@@ -1,0 +1,19 @@
+{
+  "name": "Inspection Portal",
+  "short_name": "Inspections",
+  "description": "Multi-unit building inspections and property manager deficiency reports.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7f5",
+  "theme_color": "#0f7b6c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
