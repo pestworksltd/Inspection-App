@@ -29,6 +29,10 @@ html {
   min-width: 320px;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   background: var(--surface-2);
@@ -69,7 +73,7 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 24px 0 16px;
+  padding: 18px 0 12px;
 }
 
 .topbar h1,
@@ -166,6 +170,19 @@ main {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+}
+
+.project-strip,
+.stat-tile,
+.active-unit-header,
+.unit-queue,
+.deficiency-form-wrap,
+.unit-deficiencies,
+.setup-panel,
+.portal-panel,
+.portal-dashboard,
+.table-wrap {
+  box-shadow: 0 8px 28px rgba(28, 45, 41, 0.06);
 }
 
 label {
@@ -275,7 +292,7 @@ main {
 
 .inspection-layout {
   display: grid;
-  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  grid-template-columns: minmax(230px, 300px) minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -408,10 +425,12 @@ main {
 
 .active-unit-panel {
   display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
   gap: 16px;
 }
 
 .active-unit-header {
+  grid-column: 1 / -1;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -456,6 +475,7 @@ main {
 }
 
 .quick-row {
+  grid-column: 1 / -1;
   display: flex;
   gap: 8px;
   overflow-x: auto;
@@ -483,7 +503,7 @@ main {
 
 .deficiency-form {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   padding: 0 16px 16px;
 }
@@ -526,6 +546,106 @@ main {
   margin: 0 0 8px;
   color: #263235;
   line-height: 1.45;
+}
+
+.photo-upload-field {
+  min-height: 76px;
+  padding: 14px;
+  border: 1px dashed #a9b8b3;
+  border-radius: var(--radius);
+  background: #fbfcfb;
+}
+
+.photo-upload-field input {
+  height: auto;
+  padding: 10px;
+  background: var(--surface);
+}
+
+.photo-preview-strip,
+.photo-strip,
+.table-photo-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.photo-preview-strip {
+  min-height: 72px;
+}
+
+.photo-empty-note {
+  width: 100%;
+  padding: 14px;
+  border: 1px dashed #bdc8c4;
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 740;
+}
+
+.photo-thumb {
+  position: relative;
+  width: 118px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.photo-thumb img,
+.photo-strip img,
+.table-photo-strip img {
+  display: block;
+  width: 100%;
+  height: 84px;
+  object-fit: cover;
+}
+
+.photo-thumb figcaption {
+  overflow: hidden;
+  padding: 6px 8px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.photo-thumb button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-height: 28px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 8px;
+  background: rgba(23, 32, 34, 0.78);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.photo-strip,
+.table-photo-strip {
+  margin-top: 10px;
+}
+
+.photo-strip a,
+.table-photo-strip a {
+  width: 76px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.table-photo-strip a {
+  width: 58px;
+}
+
+.table-photo-strip img {
+  height: 52px;
 }
 
 .meta-row {
@@ -839,7 +959,8 @@ main {
   }
 
   .inspection-layout,
-  .setup-layout {
+  .setup-layout,
+  .active-unit-panel {
     grid-template-columns: 1fr;
   }
 
@@ -891,6 +1012,10 @@ main {
   .view-tabs {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 8px 22px rgba(28, 45, 41, 0.08);
   }
 
   .tab-button {
@@ -901,6 +1026,22 @@ main {
   .card-actions {
     grid-column: 1 / -1;
     flex-direction: row;
+  }
+
+  .unit-queue {
+    max-height: 300px;
+  }
+
+  .unit-card {
+    min-height: 64px;
+  }
+
+  .photo-thumb {
+    width: calc(50% - 5px);
+  }
+
+  .photo-thumb img {
+    height: 120px;
   }
 }
 
