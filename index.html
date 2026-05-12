@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Building Inspection Register</title>
+    <meta name="theme-color" content="#0f7b6c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Inspections" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Inspection Register</p>
+          <h1 id="projectTitle">Building Inspection</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="ghost-button" id="continueNextBtn" type="button" data-testid="continue-next">Continue next unit</button>
+          <button class="primary-button" id="exportCsvBtn" type="button" data-testid="export-csv">Export CSV</button>
+        </div>
+      </header>
+
+      <section class="project-strip" aria-label="Project details">
+        <label>
+          Building
+          <input id="projectNameInput" type="text" autocomplete="off" />
+        </label>
+        <label>
+          Address
+          <input id="projectAddressInput" type="text" autocomplete="off" />
+        </label>
+        <label>
+          Current User
+          <input id="inspectorInput" type="text" list="teamOptions" autocomplete="off" />
+        </label>
+        <label>
+          Date
+          <input id="inspectionDateInput" type="date" />
+        </label>
+      </section>
+
+      <section class="stats-grid" aria-label="Inspection summary">
+        <article class="stat-tile">
+          <span class="stat-label">Units</span>
+          <strong id="totalUnits">0</strong>
+        </article>
+        <article class="stat-tile">
+          <span class="stat-label">Complete</span>
+          <strong id="completeUnits">0</strong>
+        </article>
+        <article class="stat-tile">
+          <span class="stat-label">Open Deficiencies</span>
+          <strong id="openDeficiencies">0</strong>
+        </article>
+        <article class="stat-tile">
+          <span class="stat-label">High / Critical</span>
+          <strong id="highDeficiencies">0</strong>
+        </article>
+      </section>
+
+      <nav class="view-tabs" aria-label="Views">
+        <button class="tab-button is-active" type="button" data-view="inspect" data-testid="view-inspect">Inspect</button>
+        <button class="tab-button" type="button" data-view="master" data-testid="view-master">Master List</button>
+        <button class="tab-button" type="button" data-view="setup" data-testid="view-setup">Setup</button>
+        <button class="tab-button" type="button" data-view="portal" data-testid="view-portal">Portal</button>
+      </nav>
+
+      <main>
+        <section class="view-panel is-active" id="inspectView" aria-labelledby="inspectLabel">
+          <h2 class="sr-only" id="inspectLabel">Inspect units</h2>
+          <div class="inspection-layout">
+            <aside class="unit-queue" aria-label="Unit queue">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Run Order</p>
+                  <h2>Units</h2>
+                </div>
+                <button class="icon-button" type="button" id="sortUnitsBtn" aria-label="Sort units">A-Z</button>
+              </div>
+              <input class="search-input" id="unitSearchInput" type="search" placeholder="Search units" autocomplete="off" />
+              <div class="unit-list" id="unitList" data-testid="unit-list"></div>
+            </aside>
+
+            <section class="inspection-workspace" aria-live="polite">
+              <div class="empty-state" id="emptyInspectionState">
+                <h2>Add units to begin</h2>
+                <p>No units in the run order.</p>
+                <button class="primary-button" type="button" data-jump-view="setup">Open setup</button>
+              </div>
+
+              <div class="active-unit-panel" id="activeUnitPanel" hidden>
+                <div class="active-unit-header">
+                  <div>
+                    <p class="eyebrow">Active Unit</p>
+                    <h2 id="activeUnitName">Unit</h2>
+                    <span class="status-pill" id="activeUnitStatus">Not started</span>
+                  </div>
+                  <div class="unit-actions">
+                    <button class="ghost-button" type="button" id="prevUnitBtn">Previous</button>
+                    <button class="ghost-button" type="button" id="nextUnitBtn">Next</button>
+                    <button class="warning-button" type="button" id="noAccessBtn">No access & next</button>
+                    <button class="primary-button" type="button" id="completeUnitBtn" data-testid="complete-next">Complete & next</button>
+                  </div>
+                </div>
+
+                <div class="quick-row" aria-label="Rooms">
+                  <button type="button" data-room="Entry">Entry</button>
+                  <button type="button" data-room="Kitchen">Kitchen</button>
+                  <button type="button" data-room="Living">Living</button>
+                  <button type="button" data-room="Bedroom">Bedroom</button>
+                  <button type="button" data-room="Bathroom">Bathroom</button>
+                  <button type="button" data-room="Mechanical">Mechanical</button>
+                  <button type="button" data-room="Balcony">Balcony</button>
+                </div>
+
+                <section class="deficiency-form-wrap" aria-labelledby="deficiencyFormLabel">
+                  <div class="panel-heading">
+                    <div>
+                      <p class="eyebrow">Deficiency</p>
+                      <h2 id="deficiencyFormLabel">Add item</h2>
+                    </div>
+                    <button class="ghost-button" type="button" id="clearFormBtn">Clear</button>
+                  </div>
+
+                  <form class="deficiency-form" id="deficiencyForm" data-testid="deficiency-form">
+                    <input id="editingId" type="hidden" />
+                    <label>
+                      Room / Area
+                      <input id="roomInput" name="room" type="text" list="roomOptions" autocomplete="off" required />
+                    </label>
+                    <label>
+                      Category
+                      <select id="categoryInput" name="category" required>
+                        <option value="General">General</option>
+                        <option value="Electrical">Electrical</option>
+                        <option value="Plumbing">Plumbing</option>
+                        <option value="HVAC">HVAC</option>
+                        <option value="Life Safety">Life Safety</option>
+                        <option value="Doors / Hardware">Doors / Hardware</option>
+                        <option value="Windows">Windows</option>
+                        <option value="Finishes">Finishes</option>
+                        <option value="Appliances">Appliances</option>
+                        <option value="Exterior">Exterior</option>
+                      </select>
+                    </label>
+                    <label>
+                      Exact Location
+                      <input id="locationInput" name="location" type="text" autocomplete="off" placeholder="Wall, ceiling, cabinet, riser..." />
+                    </label>
+                    <label>
+                      Severity
+                      <select id="severityInput" name="severity">
+                        <option>Low</option>
+                        <option selected>Medium</option>
+                        <option>High</option>
+                        <option>Critical</option>
+                      </select>
+                    </label>
+                    <label class="wide-field">
+                      Description
+                      <textarea id="descriptionInput" name="description" rows="3" required></textarea>
+                    </label>
+                    <label>
+                      Trade / Owner
+                      <input id="tradeInput" name="trade" type="text" list="tradeOptions" autocomplete="off" />
+                    </label>
+                    <label>
+                      Status
+                      <select id="statusInput" name="status">
+                        <option selected>Open</option>
+                        <option>Ready for Review</option>
+                        <option>Closed</option>
+                        <option>Deferred</option>
+                      </select>
+                    </label>
+                    <label>
+                      Photo Refs
+                      <input id="photosInput" name="photos" type="text" autocomplete="off" placeholder="IMG_1022, IMG_1023" />
+                    </label>
+                    <label>
+                      Due Date
+                      <input id="dueDateInput" name="dueDate" type="date" />
+                    </label>
+                    <label>
+                      Logged By
+                      <input id="loggedByInput" name="loggedBy" type="text" list="teamOptions" autocomplete="off" />
+                    </label>
+                    <label class="wide-field">
+                      Notes
+                      <textarea id="notesInput" name="notes" rows="2"></textarea>
+                    </label>
+                    <div class="form-actions wide-field">
+                      <button class="primary-button" type="submit" id="saveDeficiencyBtn" data-testid="save-deficiency">Save deficiency</button>
+                    </div>
+                  </form>
+
+                  <datalist id="roomOptions">
+                    <option value="Entry"></option>
+                    <option value="Kitchen"></option>
+                    <option value="Living"></option>
+                    <option value="Bedroom"></option>
+                    <option value="Bathroom"></option>
+                    <option value="Mechanical"></option>
+                    <option value="Balcony"></option>
+                    <option value="Laundry"></option>
+                    <option value="Corridor"></option>
+                  </datalist>
+                  <datalist id="tradeOptions">
+                    <option value="General Contractor"></option>
+                    <option value="Electrical"></option>
+                    <option value="Plumbing"></option>
+                    <option value="HVAC"></option>
+                    <option value="Fire Protection"></option>
+                    <option value="Millwork"></option>
+                    <option value="Drywall / Paint"></option>
+                    <option value="Flooring"></option>
+                    <option value="Glazing"></option>
+                  </datalist>
+                  <datalist id="teamOptions"></datalist>
+                </section>
+
+                <section class="unit-deficiencies" aria-labelledby="unitDeficienciesLabel">
+                  <div class="panel-heading">
+                    <div>
+                      <p class="eyebrow">Unit Register</p>
+                      <h2 id="unitDeficienciesLabel">Deficiencies</h2>
+                    </div>
+                    <span id="unitDeficiencyCount" class="count-badge">0</span>
+                  </div>
+                  <div id="unitDeficiencyList" class="deficiency-list"></div>
+                  <label class="unit-notes">
+                    Unit Notes
+                    <textarea id="unitNotesInput" rows="3"></textarea>
+                  </label>
+                </section>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view-panel" id="masterView" aria-labelledby="masterLabel">
+          <div class="master-header">
+            <div>
+              <p class="eyebrow">Building-Wide</p>
+              <h2 id="masterLabel">Master Deficiency List</h2>
+            </div>
+            <div class="topbar-actions">
+              <button class="ghost-button" id="exportJsonBtn" type="button">Export backup</button>
+              <button class="ghost-button" id="printBtn" type="button">Print</button>
+              <button class="primary-button" id="exportCsvBtnSecondary" type="button">Export CSV</button>
+            </div>
+          </div>
+
+          <div class="filter-bar" aria-label="Master list filters">
+            <input id="masterSearchInput" type="search" placeholder="Search deficiency list" autocomplete="off" />
+            <select id="filterStatusInput" aria-label="Filter status">
+              <option value="">All statuses</option>
+              <option>Open</option>
+              <option>Ready for Review</option>
+              <option>Closed</option>
+              <option>Deferred</option>
+            </select>
+            <select id="filterSeverityInput" aria-label="Filter severity">
+              <option value="">All severities</option>
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+              <option>Critical</option>
+            </select>
+            <select id="filterUnitStatusInput" aria-label="Filter unit status">
+              <option value="">All unit statuses</option>
+              <option value="not-started">Not started</option>
+              <option value="in-progress">In progress</option>
+              <option value="complete">Complete</option>
+              <option value="no-access">No access</option>
+            </select>
+          </div>
+
+          <div class="master-summary" id="masterSummary"></div>
+
+          <div class="table-wrap">
+            <table class="deficiency-table">
+              <thead>
+                <tr>
+                  <th>Unit</th>
+                  <th>Room</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Severity</th>
+                  <th>Status</th>
+                  <th>Trade</th>
+                  <th>Logged By</th>
+                  <th>Photo Refs</th>
+                  <th>Due</th>
+                </tr>
+              </thead>
+              <tbody id="masterTableBody" data-testid="master-table"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view-panel" id="setupView" aria-labelledby="setupLabel">
+          <div class="setup-layout">
+            <section class="setup-panel" aria-labelledby="setupLabel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Building</p>
+                  <h2 id="setupLabel">Unit Setup</h2>
+                </div>
+                <button class="ghost-button" id="loadSampleBtn" type="button">Load sample</button>
+              </div>
+
+              <form class="generator-grid" id="unitGeneratorForm">
+                <label>
+                  Prefix
+                  <input id="unitPrefixInput" type="text" autocomplete="off" placeholder="A-" />
+                </label>
+                <label>
+                  Floors From
+                  <input id="floorStartInput" type="number" min="0" value="1" />
+                </label>
+                <label>
+                  Floors To
+                  <input id="floorEndInput" type="number" min="0" value="5" />
+                </label>
+                <label>
+                  Suites / Floor
+                  <input id="suitesPerFloorInput" type="number" min="1" value="10" />
+                </label>
+                <label>
+                  First Suite
+                  <input id="suiteStartInput" type="number" min="0" value="1" />
+                </label>
+                <label>
+                  Suite Digits
+                  <input id="suiteDigitsInput" type="number" min="1" max="4" value="2" />
+                </label>
+                <button class="primary-button wide-field" type="submit" data-testid="generate-units">Generate units</button>
+              </form>
+
+              <label class="paste-units">
+                Paste Units
+                <textarea id="pasteUnitsInput" rows="7" placeholder="101, 102, 103"></textarea>
+              </label>
+              <div class="form-actions">
+                <button class="ghost-button" id="addPastedUnitsBtn" type="button">Add pasted units</button>
+                <button class="danger-button" id="clearUnitsBtn" type="button">Clear all units</button>
+              </div>
+            </section>
+
+            <section class="setup-panel" aria-labelledby="dataToolsLabel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Team</p>
+                  <h2>Inspectors</h2>
+                </div>
+              </div>
+              <label class="paste-units">
+                Team Members
+                <textarea id="teamMembersInput" rows="5" placeholder="Alex, Jordan, Sam"></textarea>
+              </label>
+              <div class="form-actions">
+                <button class="ghost-button" id="saveTeamBtn" type="button">Save team</button>
+              </div>
+
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Portal Contacts</p>
+                  <h2>Property Manager Emails</h2>
+                </div>
+              </div>
+              <div class="portal-access-grid">
+                <input id="portalContactIdInput" type="hidden" />
+                <label>
+                  Manager Name
+                  <input id="portalContactNameInput" type="text" autocomplete="off" placeholder="Property manager" />
+                </label>
+                <label>
+                  Manager Email
+                  <input id="portalEmailInput" type="email" autocomplete="off" placeholder="manager@example.com" />
+                </label>
+                <label>
+                  Account Number
+                  <input id="portalAccountInput" type="text" inputmode="numeric" autocomplete="off" placeholder="100" />
+                </label>
+              </div>
+              <div class="form-actions">
+                <button class="primary-button" id="savePortalContactBtn" type="button">Save portal contact</button>
+                <button class="ghost-button" id="clearPortalContactBtn" type="button">Clear</button>
+              </div>
+              <div class="portal-contact-list" id="portalContactList"></div>
+
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Data</p>
+                  <h2 id="dataToolsLabel">Export / Import</h2>
+                </div>
+              </div>
+              <div class="data-tools">
+                <div class="storage-note" id="backendStatus">Backend not configured. Running locally.</div>
+                <button class="primary-button" id="setupExportCsvBtn" type="button">Export master CSV</button>
+                <button class="ghost-button" id="setupExportJsonBtn" type="button">Export backup JSON</button>
+                <label class="file-import">
+                  Import Backup JSON
+                  <input id="importJsonInput" type="file" accept="application/json,.json" />
+                </label>
+              </div>
+              <div class="storage-note" id="saveStateIndicator">Saved locally</div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view-panel" id="portalView" aria-labelledby="portalLabel">
+          <div class="portal-layout">
+            <section class="portal-panel" id="portalLoginPanel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Customer Portal</p>
+                  <h2 id="portalLabel">Property Manager Sign In</h2>
+                </div>
+              </div>
+              <form class="portal-login-form" id="portalRequestForm">
+                <label>
+                  Email Address
+                  <input id="portalLoginEmailInput" type="email" autocomplete="email" required />
+                </label>
+                <label>
+                  Account Number
+                  <input id="portalLoginAccountInput" type="text" inputmode="numeric" autocomplete="off" required />
+                </label>
+                <button class="primary-button wide-field" type="submit" id="sendPortalCodeBtn">Send one-time code</button>
+              </form>
+              <form class="portal-login-form" id="portalCodeForm" hidden>
+                <label>
+                  One-Time Code
+                  <input id="portalCodeInput" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required />
+                </label>
+                <button class="primary-button" type="submit">Sign in</button>
+              </form>
+              <div class="portal-message" id="portalMessage" aria-live="polite"></div>
+            </section>
+
+            <section class="portal-dashboard" id="portalDashboard" hidden>
+              <div class="portal-dashboard-header">
+                <div>
+                  <p class="eyebrow">Portal</p>
+                  <h2 id="portalBuildingName">Reports</h2>
+                  <p id="portalAccountLine"></p>
+                </div>
+                <div class="topbar-actions">
+                  <button class="ghost-button" type="button" id="portalExportCsvBtn">Export CSV</button>
+                  <button class="ghost-button" type="button" id="portalSignOutBtn">Sign out</button>
+                </div>
+              </div>
+              <div class="portal-report-grid" id="portalReportSummary"></div>
+              <div class="table-wrap">
+                <table class="deficiency-table">
+                  <thead>
+                    <tr>
+                      <th>Unit</th>
+                      <th>Room</th>
+                      <th>Category</th>
+                      <th>Description</th>
+                      <th>Severity</th>
+                      <th>Status</th>
+                      <th>Trade</th>
+                      <th>Logged By</th>
+                      <th>Photo Refs</th>
+                    </tr>
+                  </thead>
+                  <tbody id="portalTableBody" data-testid="portal-table"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="emptyListTemplate">
+      <div class="inline-empty">No records yet.</div>
+    </template>
+
+    <script src="backend-config.js"></script>
+    <script src="app.js" defer></script>
+  </body>
+</html>
