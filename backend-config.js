@@ -70,6 +70,10 @@ window.INSPECTION_BACKEND = {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
+  function uid() {
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+
   function escapeHtml(value) {
     return String(value ?? "")
       .replaceAll("&", "&amp;")
@@ -181,7 +185,7 @@ window.INSPECTION_BACKEND = {
       .join("");
   }
 
-  function createDeficiencyFromChecklist(room, item, note) {
+  function createDeficiencyFromChecklist(unit, room, item, note) {
     const form = document.getElementById("deficiencyForm");
     if (!form) return;
     const [, label, category] = item;
@@ -220,7 +224,7 @@ window.INSPECTION_BACKEND = {
     writeState(state);
 
     if (status === "issue" && !record.deficiencyCreated) {
-      createDeficiencyFromChecklist(activeRoom, item, record.note || "");
+      createDeficiencyFromChecklist(unit, activeRoom, item, record.note || "");
       const refreshed = readState();
       const refreshedRecords = checklistRecords(refreshed, unit.id, activeRoom);
       refreshedRecords[itemId] = {
@@ -271,4 +275,32 @@ window.INSPECTION_BACKEND = {
   }
 
   window.addEventListener("DOMContentLoaded", () => setTimeout(init, 0));
+})();
+
+(() => {
+  function movePictureOptionBelowNotes() {
+    const photoInput = document.getElementById("photoCaptureInput");
+    const notesInput = document.getElementById("notesInput");
+    if (!photoInput || !notesInput) return;
+
+    const photoLabel = photoInput.closest("label");
+    const notesLabel = notesInput.closest("label");
+    const preview = document.getElementById("photoPreviewStrip");
+    if (!photoLabel || !notesLabel) return;
+
+    const textNode = [...photoLabel.childNodes].find((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+    if (textNode) textNode.textContent = "Add a Picture";
+
+    if (notesLabel.nextElementSibling !== photoLabel) {
+      notesLabel.insertAdjacentElement("afterend", photoLabel);
+    }
+    if (preview && photoLabel.nextElementSibling !== preview) {
+      photoLabel.insertAdjacentElement("afterend", preview);
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    setTimeout(movePictureOptionBelowNotes, 0);
+    setTimeout(movePictureOptionBelowNotes, 500);
+  });
 })();
