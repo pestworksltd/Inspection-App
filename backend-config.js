@@ -304,3 +304,45 @@ window.INSPECTION_BACKEND = {
     setTimeout(movePictureOptionBelowNotes, 500);
   });
 })();
+
+(() => {
+  let completingAfterSave = false;
+
+  function hasDeficiencyDraft() {
+    const ids = [
+      "roomInput",
+      "locationInput",
+      "descriptionInput",
+      "tradeInput",
+      "photosInput",
+      "dueDateInput",
+      "notesInput",
+    ];
+    const hasText = ids.some((id) => document.getElementById(id)?.value.trim());
+    const hasPhotos = Boolean(document.querySelector("#photoPreviewStrip .photo-thumb"));
+    return hasText || hasPhotos;
+  }
+
+  function saveDraftBeforeCompleting(event) {
+    const button = event.target.closest("#completeUnitBtn");
+    if (!button || completingAfterSave) return;
+    const form = document.getElementById("deficiencyForm");
+    if (!form || !hasDeficiencyDraft()) return;
+    if (!form.reportValidity()) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    completingAfterSave = true;
+    form.dispatchEvent(new SubmitEvent("submit", { bubbles: true, cancelable: true }));
+    setTimeout(() => {
+      button.click();
+      completingAfterSave = false;
+    }, 0);
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const button = document.getElementById("completeUnitBtn");
+    if (button) button.textContent = "Save unit & next";
+    document.addEventListener("click", saveDraftBeforeCompleting, true);
+  });
+})();
